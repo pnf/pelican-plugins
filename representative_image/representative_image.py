@@ -1,12 +1,13 @@
+import six
 from pelican import signals
-from pelican.contents import Article, Draft, Page
+from pelican.contents import Article, Page
 from pelican.generators import ArticlesGenerator
 from bs4 import BeautifulSoup
 
 
 def images_extraction(instance):
     representativeImage = None
-    if type(instance) in (Article, Draft, Page):
+    if type(instance) in (Article, Page):
         if 'image' in instance.metadata:
             representativeImage = instance.metadata['image']
 
@@ -20,7 +21,7 @@ def images_extraction(instance):
             i.extract()
         if len(images) > 0:
             # set _summary field which is based on metadata. summary field is only based on article's content and not settable
-            instance._summary = unicode(soup)
+            instance._summary = six.text_type(soup)
 
         # If there are no image in summary, look for it in the content body
         if not representativeImage:
@@ -38,6 +39,8 @@ def run_plugin(generators):
         if isinstance(generator, ArticlesGenerator):
             for article in generator.articles:
                 images_extraction(article)
+                for translation in article.translations:
+                    images_extraction(translation)
 
 
 def register():
